@@ -2,49 +2,57 @@ name: Render Remotion video
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
 
 jobs:
   render:
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: "20"
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+      - name: Install system media and offline TTS tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends ffmpeg espeak-ng
       - name: Install dependencies
         run: |
-          npm install
-          python -m pip install --upgrade pip
-          pip install edge-tts
+          npm install --no-audit --no-fund
+          python -m pip install --disable-pip-version-check --upgrade pip
+          python -m pip install edge-tts
+      - name: Check Python scripts
+        run: python -m py_compile scripts/generate_narration.py scripts/create_soundtrack.py
+      - name: Type-check TypeScript
+        run: npm run typecheck
       - name: Generate Russian narration
-        run: |
-          for attempt in 1 2 3; do
-            echo "Generating narration (attempt ${attempt}/3)..."
-            rm -f public/narration.mp3
-            if edge-tts --voice ru-RU-DmitryNeural --rate=-8% --file public/narration.txt --write-media public/narration.mp3 && test -s public/narration.mp3; then
-              echo "Narration generated successfully."
-              exit 0
-            fi
-            if [ "$attempt" -lt 3 ]; then
-              echo "TTS did not return audio; retrying in 10 seconds..."
-              sleep 10
-            fi
-          done
-          echo "ERROR: Edge TTS did not return audio after 3 attempts."
-          exit 1
+        run: python scripts/generate_narration.py
       - name: Create original ambient soundtrack
         run: python scripts/create_soundtrack.py
       - name: Render vertical MP4
-        run: npx remotion render src/index.ts Main out/video.mp4
+        run: |
+          mkdir -p out
+          npx remotion render src/index.ts Main out/video.mp4
+      - name: Validate rendered MP4
+        run: |
+          test -s out/video.mp4
+          ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 out/video.mp4
       - name: Upload MP4
         uses: actions/upload-artifact@v4
         with:
           name: remotion-video-9x16
           path: out/video.mp4
           if-no-files-found: error
+          retention-days: 14
