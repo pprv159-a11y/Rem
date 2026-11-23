@@ -1,27 +1,13 @@
-# Remotion Studio
+# Remotion Studio — Единственный правитель мира
 
-A starter project for creating videos with [Remotion](https://www.remotion.dev/) and rendering MP4 files with GitHub Actions.
+Vertical 9:16 cinematic explainer video with original Russian narration generated during GitHub Actions.
 
-## Run locally
-
-```bash
-npm install
-npm run dev
-```
-
-## Render an MP4 locally
-
-```bash
-npm run build
-```
-
-The rendered file is written to `out/video.mp4`.
-
-## Render on GitHub
-
-1. Open the **Actions** tab in this repository.
+## Render MP4
+1. Open the **Actions** tab.
 2. Select **Render Remotion video**.
 3. Click **Run workflow**.
-4. When it finishes, open the run and download the `remotion-video` artifact. It contains `video.mp4`.
+4. Download the `remotion-video-9x16` artifact after the workflow finishes.
 
-The starter composition is `Main` in `src/scenes/Main.tsx`. Edit it to create your own video.
+The workflow generates a Russian voice track with Microsoft Edge TTS and renders `out/video.mp4` (1080×1920, 30 fps, 5 minutes).
+
+Edit `public/narration.txt` to change the narration and `src/scenes/Main.tsx` to change the visuals and captions.
