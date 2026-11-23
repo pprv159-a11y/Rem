@@ -3,3 +3,9 @@ out
 .cache
 .DS_Store
 *.log
+
+# Generated media and Python cache
+public/narration.mp3
+public/narration-fallback.wav
+public/soundtrack.wav
+scripts/__pycache__/
