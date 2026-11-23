@@ -14,13 +14,22 @@ jobs:
         with:
           node-version: 20
           cache: npm
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
       - name: Install dependencies
-        run: npm install
-      - name: Render MP4
+        run: |
+          npm install
+          python -m pip install --upgrade pip
+          pip install edge-tts
+      - name: Generate Russian narration
+        run: edge-tts --voice ru-RU-DmitryNeural --rate=-8% --file public/narration.txt --write-media public/narration.mp3
+      - name: Render vertical MP4
         run: npx remotion render src/index.ts Main out/video.mp4
       - name: Upload MP4
         uses: actions/upload-artifact@v4
         with:
-          name: remotion-video
+          name: remotion-video-9x16
           path: out/video.mp4
           if-no-files-found: error
