@@ -125,6 +125,7 @@ export const Episode: React.FC<EpisodeProps> = ({ part }) => {
   return (
     <AbsoluteFill style={{ backgroundColor: "#0b0c17", color: "#f7f2ed", fontFamily: "Arial, sans-serif", overflow: "hidden" }}>
       <Audio src={staticFile(`audio/part-${part}.mp3`)} volume={1} />
+      <Audio src={staticFile("soundtrack.wav")} volume={0.12} />
       <Background accent={data.accent} frame={frame} />
       <AbsoluteFill style={{ opacity: enter, transform: `scale(${zoom})` }}>
         <div style={{ position: "absolute", top: 75, left: 65, right: 65, display: "flex", justifyContent: "space-between", color: "#c4c2d2", fontSize: 22, letterSpacing: 4 }}><span>ИСТОРИЯ • ЧАСТЬ {part}/5</span><span>МИР • 2040</span></div>
