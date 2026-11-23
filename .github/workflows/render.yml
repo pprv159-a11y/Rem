@@ -1,10 +1,11 @@
-name: Render Remotion video
+name: Render five-part animated story
 
 on:
   workflow_dispatch:
   push:
     branches:
       - main
+      - storytelling-series
 
 permissions:
   contents: read
@@ -12,7 +13,7 @@ permissions:
 jobs:
   render:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 60
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -24,35 +25,48 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - name: Install system media and offline TTS tools
+      - name: Install FFmpeg
         run: |
           sudo apt-get update
-          sudo apt-get install -y --no-install-recommends ffmpeg espeak-ng
+          sudo apt-get install -y --no-install-recommends ffmpeg
       - name: Install dependencies
         run: |
           npm install --no-audit --no-fund
           python -m pip install --disable-pip-version-check --upgrade pip
-          python -m pip install edge-tts
-      - name: Check Python scripts
-        run: python -m py_compile scripts/generate_narration.py scripts/create_soundtrack.py
+          python -m pip install piper-tts
+      - name: Validate source scripts
+        run: python -m py_compile scripts/generate_narration.py
       - name: Type-check TypeScript
         run: npm run typecheck
-      - name: Generate Russian narration
+      - name: Generate natural Russian narration
         run: python scripts/generate_narration.py
-      - name: Create original ambient soundtrack
+      - name: Generate original background soundtrack
         run: python scripts/create_soundtrack.py
-      - name: Render vertical MP4
+      - name: Render five one-minute episodes and full series
         run: |
+          set -euo pipefail
           mkdir -p out
-          npx remotion render src/index.ts Main out/video.mp4
-      - name: Validate rendered MP4
+          for part in 1 2 3 4 5; do
+            npx remotion render src/index.ts "Part${part}" "out/part-${part}.mp4"
+            test -s "out/part-${part}.mp4"
+            duration=$(ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "out/part-${part}.mp4")
+            python -c "import sys; d=float(sys.argv[1]); assert 59.8 <= d <= 60.2, f'Part duration invalid: {d}'" "$duration"
+          done
+          npx remotion render src/index.ts FullSeries out/full-series.mp4
+          test -s out/full-series.mp4
+          duration=$(ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 out/full-series.mp4)
+          python -c "import sys; d=float(sys.argv[1]); assert 299.8 <= d <= 300.2, f'Full duration invalid: {d}'" "$duration"
+      - name: Validate audio streams
         run: |
-          test -s out/video.mp4
-          ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 out/video.mp4
-      - name: Upload MP4
+          set -euo pipefail
+          for audio in public/audio/part-{1..5}.mp3; do
+            test -s "$audio"
+            ffprobe -v error -select_streams a:0 -show_entries stream=codec_name,sample_rate,channels -of json "$audio" | python -c "import json,sys; d=json.load(sys.stdin); assert d.get('streams'), 'No audio stream'; assert d['streams'][0]['codec_name']=='mp3'"
+          done
+      - name: Upload all MP4 files
         uses: actions/upload-artifact@v4
         with:
-          name: remotion-video-9x16
-          path: out/video.mp4
+          name: animated-story-five-parts
+          path: out/*.mp4
           if-no-files-found: error
           retention-days: 14

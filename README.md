@@ -1,13 +1,16 @@
-# Remotion Studio — Единственный правитель мира
+# Remotion — пять серий анимированной истории
 
-Vertical 9:16 cinematic explainer video with original Russian narration generated during GitHub Actions.
+Проект создаёт пять вертикальных серий примерно по одной минуте и единый сборник на пять минут.
 
-## Render MP4
-1. Open the **Actions** tab.
-2. Select **Render Remotion video**.
-3. Click **Run workflow**.
-4. Download the `remotion-video-9x16` artifact after the workflow finishes.
+## Формат
+- 1080×1920, 9:16, 30 FPS.
+- Пять отдельных композиций: Part1–Part5.
+- Общая композиция: FullSeries.
+- Стилизованная 2D-анимация персонажа, телефона, карты и сюжетных сцен.
+- Русская озвучка нейросетевой Piper TTS, мужской голос ru_RU-denis-medium.
+- eSpeak и Edge TTS не используются: сборка проверяет все пять MP3 и останавливается при проблеме синтеза.
 
-The workflow generates a Russian voice track with Microsoft Edge TTS and renders `out/video.mp4` (1080×1920, 30 fps, 5 minutes).
+## Сборка
+Открой Actions → Render five-part animated story → Run workflow. После успешного выполнения скачай artifact `animated-story-five-parts`, содержащий пять MP4 и полный сборник.
 
-Edit `public/narration.txt` to change the narration and `src/scenes/Main.tsx` to change the visuals and captions.
+Исходники озвучки находятся в `public/narration/part-1.txt` … `part-5.txt`.
