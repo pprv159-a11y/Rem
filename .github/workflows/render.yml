@@ -25,6 +25,8 @@ jobs:
           pip install edge-tts
       - name: Generate Russian narration
         run: edge-tts --voice ru-RU-DmitryNeural --rate=-8% --file public/narration.txt --write-media public/narration.mp3
+      - name: Create original ambient soundtrack
+        run: python scripts/create_soundtrack.py
       - name: Render vertical MP4
         run: npx remotion render src/index.ts Main out/video.mp4
       - name: Upload MP4
