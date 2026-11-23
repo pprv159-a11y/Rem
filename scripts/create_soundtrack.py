@@ -3,7 +3,7 @@ import struct
 import wave
 
 SAMPLE_RATE = 22050
-DURATION = 240
+DURATION = 30
 CHUNK_SECONDS = 1
 CHORDS = [
     (146.83, 174.61, 220.00),  # D minor
@@ -21,9 +21,9 @@ with wave.open("public/soundtrack.wav", "wb") as out:
         end = min((start + CHUNK_SECONDS) * SAMPLE_RATE, DURATION * SAMPLE_RATE)
         for i in range(start * SAMPLE_RATE, end):
             t = i / SAMPLE_RATE
-            chord = CHORDS[int(t // 15) % len(CHORDS)]
-            fade_in = min(1.0, t / 5.0)
-            fade_out = min(1.0, (DURATION - t) / 8.0)
+            chord = CHORDS[int(t // 7.5) % len(CHORDS)]
+            fade_in = min(1.0, t / 2.0)
+            fade_out = min(1.0, (DURATION - t) / 3.0)
             envelope = max(0.0, min(fade_in, fade_out))
             slow_pulse = 0.72 + 0.28 * math.sin(2 * math.pi * 0.075 * t)
             sample = sum(math.sin(2 * math.pi * f * t) for f in chord) / 3
