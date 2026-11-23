@@ -34,4 +34,4 @@ Use Node.js 20 and Python 3.11. Install the system packages FFmpeg and eSpeak NG
 
 Run npm run check, then python scripts/generate_narration.py, python scripts/create_soundtrack.py, python scripts/validate_media.py --assets-only, npx remotion browser ensure, npm run render, and python scripts/validate_media.py --video out/video.mp4.
 
-The CI workflow bootstraps package-lock.json on its first run and commits it to the same-repository branch. Subsequent runs use npm ci for reproducible dependency installation.
+The repository includes package-lock.json. CI uses npm ci so dependency versions are reproducible across runs.
