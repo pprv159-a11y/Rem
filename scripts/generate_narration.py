@@ -1,8 +1,5 @@
 #!/usr/bin/env python3
-"""Generate five natural-sounding Russian narration tracks using Edge TTS only.
-
-The workflow deliberately fails instead of silently substituting a robotic offline voice.
-"""
+"""Generate five Russian narration tracks with the neural Piper voice Denis."""
 from __future__ import annotations
 
 import shutil
@@ -13,23 +10,19 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE_DIR = ROOT / "public" / "narration"
 OUTPUT_DIR = ROOT / "public" / "audio"
-VOICE = "ru-RU-DmitryNeural"
-RATE = "-3%"
-PITCH = "-2Hz"
-EXPECTED_PARTS = range(1, 6)
+MODEL_DIR = ROOT / "models"
+VOICE = "ru_RU-denis-medium"
+PARTS = range(1, 6)
 
 
-def run(command: list[str], *, timeout: int = 180) -> None:
+def run(command: list[str], *, input_text: str | None = None, timeout: int = 240) -> None:
     print("+", " ".join(command), flush=True)
-    subprocess.run(command, check=True, timeout=timeout)
+    subprocess.run(command, input=input_text, text=True, check=True, timeout=timeout)
 
 
 def duration(path: Path) -> float:
-    ffprobe = shutil.which("ffprobe")
-    if not ffprobe:
-        raise RuntimeError("ffprobe is required (install ffmpeg).")
     result = subprocess.run(
-        [ffprobe, "-v", "error", "-show_entries", "format=duration",
+        ["ffprobe", "-v", "error", "-show_entries", "format=duration",
          "-of", "default=noprint_wrappers=1:nokey=1", str(path)],
         check=True, capture_output=True, text=True,
     )
@@ -37,45 +30,45 @@ def duration(path: Path) -> float:
 
 
 def main() -> int:
-    edge_tts = shutil.which("edge-tts")
-    if not edge_tts:
-        raise RuntimeError("edge-tts executable is missing; refusing low-quality fallback.")
+    if not shutil.which("ffmpeg") or not shutil.which("ffprobe"):
+        raise RuntimeError("FFmpeg and ffprobe are required.")
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-    for part in EXPECTED_PARTS:
+    MODEL_DIR.mkdir(parents=True, exist_ok=True)
+    model = MODEL_DIR / f"{VOICE}.onnx"
+    config = MODEL_DIR / f"{VOICE}.onnx.json"
+    if not model.is_file() or not config.is_file():
+        run([sys.executable, "-m", "piper.download_voices", VOICE, "--data-dir", str(MODEL_DIR)], timeout=300)
+
+    for part in PARTS:
         source = SOURCE_DIR / f"part-{part}.txt"
-        output = OUTPUT_DIR / f"part-{part}.mp3"
+        wav = OUTPUT_DIR / f"part-{part}.wav"
+        mp3 = OUTPUT_DIR / f"part-{part}.mp3"
         if not source.is_file():
             raise FileNotFoundError(f"Missing narration source: {source}")
         text = source.read_text(encoding="utf-8").strip()
-        if len(text.split()) < 85:
-            raise ValueError(f"Part {part} narration is too short (<85 words).")
-        output.unlink(missing_ok=True)
-        command = [
-            edge_tts, "--voice", VOICE, f"--rate={RATE}", f"--pitch={PITCH}",
-            "--text", text, "--write-media", str(output),
-        ]
-        last_error: Exception | None = None
-        for attempt in range(1, 4):
-            try:
-                print(f"Generating part {part}/5, attempt {attempt}/3, voice={VOICE}")
-                run(command, timeout=180)
-                if output.is_file() and output.stat().st_size > 8_000:
-                    seconds = duration(output)
-                    if 35 <= seconds <= 65:
-                        print(f"Part {part}: {seconds:.2f}s, {output.stat().st_size} bytes")
-                        last_error = None
-                        break
-                    last_error = RuntimeError(
-                        f"Part {part} narration duration is {seconds:.2f}s; expected 35–65s."
-                    )
-                else:
-                    last_error = RuntimeError(f"Part {part} audio file is missing or too small.")
-            except (subprocess.SubprocessError, OSError, ValueError) as exc:
-                last_error = exc
-            output.unlink(missing_ok=True)
-        if last_error is not None:
-            raise RuntimeError(f"Natural TTS generation failed for part {part}: {last_error}")
-    print("All five Russian narration tracks passed audio validation.")
+        words = len(text.split())
+        if not 110 <= words <= 155:
+            raise ValueError(f"Part {part} has {words} words; expected 110–155 for a one-minute episode.")
+        wav.unlink(missing_ok=True)
+        mp3.unlink(missing_ok=True)
+        run([
+            sys.executable, "-m", "piper", "-m", VOICE,
+            "--data-dir", str(MODEL_DIR), "-f", str(wav),
+            "--sentence-silence", "0.28", "--input-file", str(source),
+        ], timeout=240)
+        if not wav.is_file() or wav.stat().st_size < 100_000:
+            raise RuntimeError(f"Piper did not create a valid WAV for part {part}.")
+        run([
+            "ffmpeg", "-hide_banner", "-loglevel", "error", "-y", "-i", str(wav),
+            "-af", "loudnorm=I=-16:TP=-1.5:LRA=11", "-codec:a", "libmp3lame",
+            "-b:a", "192k", str(mp3),
+        ])
+        seconds = duration(mp3)
+        if not 35 <= seconds <= 65 or mp3.stat().st_size < 20_000:
+            raise RuntimeError(f"Part {part} audio invalid: {seconds:.2f}s, {mp3.stat().st_size} bytes.")
+        wav.unlink(missing_ok=True)
+        print(f"Part {part}: {words} words, {seconds:.2f}s, {mp3.stat().st_size} bytes.")
+    print("All five neural Russian narration tracks passed validation.")
     return 0
 
 
