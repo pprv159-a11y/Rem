@@ -13,7 +13,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: remotion-render-\${{ github.ref }}
+  group: remotion-render-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -42,7 +42,7 @@ jobs:
       - name: Bootstrap and persist npm lockfile
         shell: bash
         env:
-          HEAD_REPOSITORY: \${{ github.event.pull_request.head.repo.full_name || github.repository }}
+          HEAD_REPOSITORY: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
         run: |
           if [[ ! -f package-lock.json ]]; then
             echo "No npm lockfile found; generating one from package.json."
