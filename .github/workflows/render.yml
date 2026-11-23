@@ -40,6 +40,8 @@ jobs:
         run: npm run typecheck
       - name: Generate natural Russian narration
         run: python scripts/generate_narration.py
+      - name: Generate original background soundtrack
+        run: python scripts/create_soundtrack.py
       - name: Render five one-minute episodes and full series
         run: |
           set -euo pipefail
