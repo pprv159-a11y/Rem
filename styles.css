@@ -1,0 +1,167 @@
+/* =========================================================
+   PARTICULATE · M5 CS
+   A WebGL particle field with an editorial overlay.
+   The <canvas> is fixed full-viewport; a tall #scroll spacer
+   gives it scroll distance; chapters fade over the field.
+   ========================================================= */
+:root{
+  --bg:#06070A;          --bg-2:#0a0c10;
+  --ink:#F4F3EE;         --muted:#9b9c98;     --faint:#54565a;
+  --line:rgba(244,243,238,.14);
+  --bronze:#C49A5B;      --bronze-lit:#e7c994;
+  --m-blue:#0a5aa0;      --m-navy:#1c2c77;     --m-red:#E2231A;
+  --max:1320px;
+  --ease:cubic-bezier(.22,.61,.21,1);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html.lenis{scroll-behavior:auto}
+body{background:var(--bg);color:var(--ink);font-family:'Inter',system-ui,sans-serif;
+  -webkit-font-smoothing:antialiased;overflow-x:hidden;line-height:1.6}
+a{color:inherit;text-decoration:none}
+em{font-style:italic}
+::selection{background:var(--bronze);color:#000}
+.display{font-family:'Bodoni Moda',serif;font-weight:900;letter-spacing:-.01em}
+.mono{font-family:'Space Mono',monospace}
+.center{text-align:center;justify-content:center;align-items:center}
+.small{font-size:.74rem;letter-spacing:.16em;color:var(--muted)}
+:focus-visible{outline:2px solid var(--bronze-lit);outline-offset:3px;border-radius:2px}
+
+.skip{position:fixed;left:14px;top:-72px;z-index:300;background:var(--ink);color:#000;
+  padding:11px 18px;border-radius:6px;font-family:'Space Mono',monospace;font-size:.74rem;
+  letter-spacing:.08em;transition:top .22s var(--ease)}
+.skip:focus{top:14px}
+
+.kick{display:inline-flex;align-items:center;gap:.7em;font-size:.7rem;letter-spacing:.34em;
+  text-transform:uppercase;color:var(--muted)}
+.ms{display:inline-block;width:30px;height:7px;border-radius:1px;flex:none;
+  background:linear-gradient(90deg,var(--m-blue) 0 33%,var(--m-navy) 33% 66%,var(--m-red) 66% 100%)}
+
+/* =============== WEBGL CANVAS =============== */
+#gl{position:fixed;inset:0;width:100vw;height:100svh;z-index:1;display:block;background:var(--bg)}
+.vignette{position:fixed;inset:0;z-index:2;pointer-events:none;
+  background:radial-gradient(125% 95% at 50% 46%,transparent 40%,rgba(4,5,8,.72) 100%)}
+.grain{position:fixed;inset:0;z-index:2;pointer-events:none;opacity:.045;mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+
+/* =============== LOADER =============== */
+.loader{position:fixed;inset:0;z-index:200;background:var(--bg);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;
+  transition:opacity 1s var(--ease),visibility 1s}
+.loader.done{opacity:0;visibility:hidden;pointer-events:none}
+.loader__brand{font-size:.7rem;letter-spacing:.4em;color:var(--faint)}
+.loader__title{font-family:'Bodoni Moda',serif;font-weight:900;font-size:clamp(3rem,9vw,6rem);
+  line-height:1;letter-spacing:.02em}
+.loader__bar{width:min(46vw,300px);height:1px;background:var(--line);overflow:hidden}
+.loader__bar i{display:block;height:100%;width:0;background:var(--bronze)}
+.loader__pct{font-size:.7rem;letter-spacing:.22em;color:var(--faint)}
+
+/* =============== TOP BAR =============== */
+.bar{position:fixed;top:0;left:0;right:0;z-index:40;display:flex;align-items:center;
+  justify-content:space-between;gap:16px;padding:18px clamp(16px,4vw,40px);
+  font-size:.7rem;letter-spacing:.2em;color:var(--ink);
+  mix-blend-mode:difference;pointer-events:none}
+.bar a{pointer-events:auto}
+.bar__l{display:flex;align-items:center;gap:10px}
+.bar__c{letter-spacing:.34em;opacity:.85}
+.bar__r{min-width:120px;text-align:right;opacity:.85}
+@media(max-width:680px){.bar__c{display:none}}
+
+/* =============== CHAPTER OVERLAY =============== */
+.chapters{position:fixed;inset:0;z-index:10;pointer-events:none}
+.chap{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;
+  padding:0 clamp(22px,7vw,120px);opacity:0;will-change:opacity,transform}
+.chap[data-align="c"]{align-items:center;text-align:center}
+.chap[data-align="l"]{align-items:flex-start}
+.chap[data-align="r"]{align-items:flex-end;text-align:right}
+.chap .num{display:block;font-size:clamp(2.4rem,6vw,4.2rem);color:var(--m-red);
+  font-weight:700;line-height:1;margin-bottom:.2em;letter-spacing:.02em;text-shadow:0 0 24px rgba(226,35,26,.5)}
+.chap h1.display{font-size:clamp(4rem,19vw,16rem);line-height:.86;margin:.06em 0 .34em}
+.chap h2.display{font-size:clamp(2.4rem,8vw,6rem);line-height:.94}
+.chap h2.display em,.chap h1.display em{color:var(--bronze-lit)}
+.chap .lede{margin-top:1.1em;font-size:clamp(1rem,1.5vw,1.3rem);color:#dad9d3;font-weight:300;max-width:36ch}
+.chap[data-align="c"] .lede{margin-inline:auto}
+.chap .body{margin-top:1em;font-size:clamp(1rem,1.4vw,1.2rem);color:var(--muted);max-width:40ch}
+.chap .kick{margin-bottom:.5em}
+.finale{letter-spacing:-.02em}
+/* lift text off the field */
+.chap h1,.chap h2,.chap .num,.chap .lede,.chap .body,.chap .kick,.sp b{
+  text-shadow:0 2px 30px rgba(4,5,8,.7),0 1px 4px rgba(4,5,8,.6)}
+.small{text-shadow:none}
+
+/* anatomy catalog */
+.catalog{list-style:none;max-width:48ch}
+.catalog li{padding:10px 0;border-bottom:1px solid var(--line);font-size:.92rem;color:#cdcec9;letter-spacing:.02em}
+.catalog li b{color:var(--ink);font-weight:700;margin-right:.7em;letter-spacing:.08em}
+
+/* specs */
+.specs{display:flex;flex-wrap:wrap;gap:clamp(20px,4vw,56px);align-items:flex-end;margin-top:1.4em}
+.sp{display:flex;flex-direction:column;align-items:flex-start;min-width:74px}
+.sp b{font-size:clamp(2.8rem,8vw,6rem);line-height:.86;font-weight:900}
+.sp span{margin-top:.5em;font-size:.66rem;letter-spacing:.2em;color:var(--m-red)}
+
+/* =============== SCROLL RAIL + HINT =============== */
+.rail{position:fixed;left:clamp(22px,7vw,120px);right:clamp(22px,7vw,120px);
+  bottom:clamp(58px,9vh,84px);height:2px;background:var(--line);z-index:20;pointer-events:none}
+.rail i{position:absolute;left:0;top:0;height:100%;width:0;background:linear-gradient(90deg,var(--m-blue),var(--m-red));box-shadow:0 0 12px rgba(226,35,26,.6)}
+.rail s{position:absolute;top:50%;width:1px;height:9px;background:var(--faint);transform:translateY(-50%)}
+.hint{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);z-index:20;
+  font-size:.64rem;letter-spacing:.34em;color:var(--muted);transition:opacity .5s}
+.hint.gone{opacity:0}
+
+/* =============== SOUND TOGGLE =============== */
+.sound{position:fixed;right:clamp(16px,4vw,40px);bottom:clamp(54px,9vh,82px);z-index:30;
+  width:44px;height:44px;border-radius:50%;border:1px solid var(--line);
+  background:rgba(6,7,10,.5);-webkit-backdrop-filter:blur(7px);backdrop-filter:blur(7px);
+  color:var(--muted);display:grid;place-items:center;cursor:pointer;
+  transition:color .25s var(--ease),border-color .25s var(--ease),transform .25s var(--ease)}
+.sound:hover{color:var(--ink);border-color:var(--ink);transform:translateY(-1px)}
+.sound.on{color:var(--bronze-lit);border-color:var(--bronze)}
+.sound svg{width:19px;height:19px}
+.sound .wave{opacity:0;transition:opacity .3s var(--ease)}
+.sound.on .wave{opacity:1}
+@media(max-width:760px){.sound{width:40px;height:40px;right:16px;bottom:78px}}
+
+/* =============== SCROLL SPACER =============== */
+.scroll{position:relative;z-index:0;height:820vh;pointer-events:none}
+
+/* no-WebGL fallback: kill the field-only chrome + the tall spacer */
+.no-webgl .scroll,.no-webgl .rail,.no-webgl .hint,.no-webgl .sound{display:none!important}
+.no-webgl .chapters{position:relative;inset:auto;pointer-events:auto}
+.no-webgl .chap{position:relative;inset:auto;opacity:1!important;min-height:90svh;
+  background:linear-gradient(180deg,rgba(6,7,10,.25),rgba(6,7,10,.6))}
+
+/* =============== CODA / FOOTER =============== */
+.foot{position:relative;z-index:10;background:linear-gradient(180deg,transparent,var(--bg) 18%,var(--bg));
+  max-width:980px;margin:0 auto;padding:clamp(80px,15vh,180px) clamp(22px,5vw,46px) 70px;text-align:center}
+.foot__big{font-size:clamp(2.2rem,7vw,5.2rem);line-height:.98;margin:.5em 0}
+.foot__big em{color:var(--bronze-lit)}
+.foot__sub{color:var(--muted);max-width:56ch;margin:0 auto;font-size:1.05rem}
+.foot__top{display:inline-block;margin-top:42px;font-size:.7rem;letter-spacing:.26em;color:var(--muted);
+  border:1px solid var(--line);padding:13px 26px;border-radius:40px;transition:.25s var(--ease);
+  pointer-events:auto;cursor:pointer}
+.foot__top:hover{background:var(--ink);color:#000;border-color:var(--ink)}
+.foot__disc{margin-top:54px;color:var(--faint);font-size:.7rem;line-height:1.6;max-width:88ch;margin-inline:auto}
+
+/* =============== RESPONSIVE =============== */
+@media(max-width:760px){
+  .chap{padding:0 22px}
+  .chap[data-align="c"] .kick{margin-bottom:1.5em}
+  .chap h1.display{font-size:clamp(3.2rem,15vw,6rem);margin:.22em 0 .36em;line-height:.92}
+  .chap .lede{font-size:1rem}
+  .specs{gap:18px 30px}
+  .sp b{font-size:clamp(2.6rem,13vw,3.6rem)}
+  .rail{left:22px;right:22px;bottom:34px}
+  .hint{display:none}
+}
+
+/* =============== REDUCED MOTION: static field + readable stack =============== */
+@media(prefers-reduced-motion:reduce){
+  *{animation:none!important;transition-duration:.001ms!important;scroll-behavior:auto!important}
+  .hint,.rail,.sound{display:none!important}
+  /* canvas stays as a static assembled portrait; chapters become a normal scrolling stack */
+  .chapters{position:relative;inset:auto;pointer-events:auto}
+  .chap{position:relative;inset:auto;opacity:1!important;transform:none!important;
+    min-height:88svh;padding:12vh clamp(22px,7vw,120px);
+    background:linear-gradient(180deg,rgba(6,7,10,.2),rgba(6,7,10,.66))}
+  .scroll{display:none}
+}

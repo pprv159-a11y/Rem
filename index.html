@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="theme-color" content="#06070A" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='47' fill='%2306070a' stroke='%23C49A5B' stroke-width='4'/%3E%3Ccircle cx='50' cy='50' r='30' fill='%2306070a'/%3E%3Cpath d='M50 20 A30 30 0 0 1 80 50 L50 50Z' fill='%230a5aa0'/%3E%3Cpath d='M50 80 A30 30 0 0 1 20 50 L50 50Z' fill='%230a5aa0'/%3E%3Cpath d='M80 50 A30 30 0 0 1 50 80 L50 50Z' fill='%23eef2f4'/%3E%3Cpath d='M20 50 A30 30 0 0 1 50 20 L50 50Z' fill='%23eef2f4'/%3E%3C/svg%3E" />
+<title>PARTICULATE · M5 CS — 150,000 points of one letter</title>
+<meta name="description" content="The BMW M5 CS rebuilt from 150,000 live particles sampled from its own image. Scroll to condense, detonate and reassemble it — move your cursor to disturb the field." />
+
+<!-- Social share cards. TODO: replace https://example.com with the production domain. -->
+<link rel="canonical" href="https://example.com/" />
+<meta property="og:type" content="website" />
+<meta property="og:title" content="PARTICULATE · M5 CS" />
+<meta property="og:description" content="The most powerful M5 ever, rebuilt from 150,000 live particles. Scroll to assemble it. Touch to scatter it." />
+<meta property="og:image" content="https://example.com/assets/frames/01.jpeg" />
+<meta property="og:image:width" content="1600" />
+<meta property="og:image:height" content="900" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="PARTICULATE · M5 CS" />
+<meta name="twitter:description" content="150,000 particles. One letter. Scroll to assemble, touch to scatter." />
+<meta name="twitter:image" content="https://example.com/assets/frames/01.jpeg" />
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="preload" as="image" href="assets/frames/01.jpeg" fetchpriority="high" />
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,wght@0,400;0,500;0,700;0,900;1,500&family=Inter:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="styles.css" />
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+</head>
+<body>
+
+<a class="skip" href="#chapters">Skip to content</a>
+
+<!-- ===== PRELOADER ===== -->
+<div class="loader" id="loader" aria-hidden="true">
+  <div class="loader__brand mono">BMW · M</div>
+  <div class="loader__title">M5&nbsp;CS</div>
+  <div class="loader__bar"><i id="loadBar"></i></div>
+  <div class="loader__pct mono"><span id="loadPct">0</span> % · <span id="loadMsg">SAMPLING THE LIGHT</span></div>
+</div>
+
+<!-- ===== WEBGL FIELD (fixed, full-viewport) ===== -->
+<canvas id="gl" aria-hidden="true"></canvas>
+<div class="vignette" aria-hidden="true"></div>
+<div class="grain" aria-hidden="true"></div>
+
+<!-- ===== TOP BAR ===== -->
+<header class="bar" id="bar">
+  <a class="bar__l" href="#top">
+    <svg viewBox="0 0 100 100" width="26" height="26" aria-hidden="true">
+      <circle cx="50" cy="50" r="47" fill="none" stroke="currentColor" stroke-width="4"/>
+      <circle cx="50" cy="50" r="30" fill="#06070a"/>
+      <path d="M50 20 A30 30 0 0 1 80 50 L50 50Z" fill="#0a5aa0"/><path d="M50 80 A30 30 0 0 1 20 50 L50 50Z" fill="#0a5aa0"/>
+      <path d="M80 50 A30 30 0 0 1 50 80 L50 50Z" fill="#eef2f4"/><path d="M20 50 A30 30 0 0 1 50 20 L50 50Z" fill="#eef2f4"/>
+    </svg>
+    <span class="mono">M5&nbsp;CS</span>
+  </a>
+  <span class="bar__c mono" id="phaseTag">PARTICULATE</span>
+  <span class="bar__r mono" id="ptag">000,000 PTS</span>
+</header>
+
+<!-- ===== CHAPTER OVERLAY (fixed; fades with scroll) ===== -->
+<main id="chapters" class="chapters">
+
+  <article class="chap" data-in="0.00" data-out="0.13" data-align="c" id="top">
+    <p class="kick mono"><span class="ms"></span>BMW M · EXHIBIT 01</p>
+    <h1 class="display">M5&nbsp;CS</h1>
+    <p class="lede">Fifty-two parts. One letter. The most powerful M5 ever built.<br/><span class="mono small">— scroll to take it apart · drag to orbit —</span></p>
+  </article>
+
+  <article class="chap" data-in="0.15" data-out="0.27" data-align="l">
+    <span class="num display">01</span>
+    <h2 class="display">Built by<br/><em>subtraction.</em></h2>
+    <p class="body">The CS is what remains when M removes everything that isn't speed. A carbon roof. A carbon bonnet. Thinner glass, lighter everything — until only the letter is left.</p>
+  </article>
+
+  <article class="chap" data-in="0.295" data-out="0.40" data-align="l">
+    <span class="num display">02</span>
+    <h2 class="display">The carbon<br/><em>recipe.</em></h2>
+    <p class="body">CFRP roof and vented bonnet. Carbon bucket seats that shave seventeen kilograms. A titanium exhaust. Seventy kilos lighter than an M5 Competition — and every gram is about to come undone.</p>
+  </article>
+
+  <article class="chap" data-in="0.435" data-out="0.50" data-align="c">
+    <p class="kick mono center"><span class="ms"></span>03 · ANATOMY OF PERFORMANCE</p>
+    <h2 class="display center">Six hundred parts,<br/><em>one letter.</em></h2>
+  </article>
+
+  <article class="chap" data-in="0.505" data-out="0.645" data-align="l">
+    <p class="kick mono"><span class="ms"></span>EXPLODED VIEW · F90</p>
+    <ul class="catalog mono">
+      <li><b>S63</b> 4.4-litre biturbo V8 · 627 hp</li>
+      <li><b>M xDrive</b> all-wheel drive · active rear differential</li>
+      <li><b>Ceramics</b> 400 mm carbon-ceramic discs · red calipers</li>
+      <li><b>CFRP</b> carbon roof, vented bonnet &amp; interior trim</li>
+      <li><b>Buckets</b> M carbon bucket seats, front &amp; rear</li>
+      <li><b>Titanium</b> M sport exhaust · carbon tips</li>
+    </ul>
+    <div class="specs">
+      <div class="sp"><b class="display" data-count="627">0</b><span class="mono">HP</span></div>
+      <div class="sp"><b class="display" data-count="750">0</b><span class="mono">NM</span></div>
+      <div class="sp"><b class="display" data-count="3.0" data-dec="1">0</b><span class="mono">0–100</span></div>
+      <div class="sp"><b class="display" data-count="305">0</b><span class="mono">KM/H*</span></div>
+    </div>
+  </article>
+
+  <article class="chap" data-in="0.70" data-out="0.81" data-align="r">
+    <span class="num display">04</span>
+    <h2 class="display">And back<br/><em>together.</em></h2>
+    <p class="body">Every panel re-seated, every gram accounted for. The most powerful M5 ever built, reassembled from its own atoms in a single unbroken breath.</p>
+  </article>
+
+  <article class="chap" data-in="0.84" data-out="1.01" data-align="c">
+    <p class="kick mono center"><span class="ms"></span>BMW M5 CS · F90</p>
+    <h2 class="display finale center">627&nbsp;hp.<br/>One&nbsp;letter.</h2>
+    <p class="lede center mono small">Move your cursor — the whole car turns in the light.</p>
+  </article>
+
+</main>
+
+<!-- film transport / scroll rail -->
+<div class="rail" id="rail" aria-hidden="true">
+  <i id="railFill"></i>
+  <s style="left:17%"></s><s style="left:40%"></s><s style="left:59%"></s><s style="left:78%"></s><s style="left:94%"></s>
+</div>
+<p class="hint mono" id="hint">▼ SCROLL TO DECONSTRUCT</p>
+
+<!-- ambient sound toggle -->
+<button class="sound" id="sound" type="button" aria-pressed="false" aria-label="Toggle ambient engine sound">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+    <path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor" stroke="none"/>
+    <path class="wave" d="M16 9.5a4 4 0 0 1 0 5M18.6 7a7 7 0 0 1 0 10" stroke-linecap="round"/>
+  </svg>
+</button>
+
+<!-- scroll spacer: gives the fixed canvas its scroll distance -->
+<div class="scroll" id="scroll" aria-hidden="true"></div>
+
+<!-- ===== CODA (static, below the field) ===== -->
+<footer class="foot">
+  <p class="kick mono center"><span class="ms"></span>SHEER DRIVING PLEASURE · SINCE 1916</p>
+  <h2 class="display foot__big">The letter that<br/>needs no <em>introduction.</em></h2>
+  <p class="foot__sub">Not a photograph. Not a film. A hundred and fifty thousand decisions about where the light should fall — made sixty times a second, in your browser.</p>
+  <a href="#top" class="foot__top mono">▲ REASSEMBLE FROM THE TOP</a>
+  <p class="foot__disc">Unofficial fan-made design demonstration. Not affiliated with, endorsed by, or sponsored by BMW AG. "BMW", "M" and the roundel are trademarks of their owner; the mark shown is an original roundel-inspired homage. Imagery is AI-generated; performance figures are representative of the BMW M5 CS (F90) and shown for design purposes only. *Top speed with optional M Driver's Package.</p>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@studio-freight/lenis@1.0.42/dist/lenis.min.js"></script>
+<script type="module" src="main.js"></script>
+</body>
+</html>

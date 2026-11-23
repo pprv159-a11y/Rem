@@ -1,0 +1,16 @@
+{
+  "name": "bmw",
+  "version": "1.0.0",
+  "description": "A cinematic, single-page BMW showcase built around the **BMW M5 CS (F90)** photography and the exploded-engineering video.",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "ffmpeg-static": "^5.3.0"
+  }
+}
