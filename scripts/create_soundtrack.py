@@ -3,7 +3,7 @@ import struct
 import wave
 
 SAMPLE_RATE = 22050
-DURATION = 300
+DURATION = 240
 CHUNK_SECONDS = 1
 CHORDS = [
     (146.83, 174.61, 220.00),  # D minor
@@ -18,7 +18,8 @@ with wave.open("public/soundtrack.wav", "wb") as out:
     out.setframerate(SAMPLE_RATE)
     for start in range(0, DURATION, CHUNK_SECONDS):
         frames = bytearray()
-        for i in range(start * SAMPLE_RATE, min((start + CHUNK_SECONDS) * SAMPLE_RATE, DURATION * SAMPLE_RATE)):
+        end = min((start + CHUNK_SECONDS) * SAMPLE_RATE, DURATION * SAMPLE_RATE)
+        for i in range(start * SAMPLE_RATE, end):
             t = i / SAMPLE_RATE
             chord = CHORDS[int(t // 15) % len(CHORDS)]
             fade_in = min(1.0, t / 5.0)
