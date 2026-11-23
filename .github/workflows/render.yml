@@ -33,7 +33,7 @@ jobs:
         run: |
           npm install --no-audit --no-fund
           python -m pip install --disable-pip-version-check --upgrade pip
-          python -m pip install edge-tts
+          python -m pip install piper-tts
       - name: Validate source scripts
         run: python -m py_compile scripts/generate_narration.py
       - name: Type-check TypeScript
