@@ -23,7 +23,21 @@ jobs:
           python -m pip install --upgrade pip
           pip install edge-tts
       - name: Generate Russian narration
-        run: edge-tts --voice ru-RU-DmitryNeural --rate=-8% --file public/narration.txt --write-media public/narration.mp3
+        run: |
+          for attempt in 1 2 3; do
+            echo "Generating narration (attempt ${attempt}/3)..."
+            rm -f public/narration.mp3
+            if edge-tts --voice ru-RU-DmitryNeural --rate=-8% --file public/narration.txt --write-media public/narration.mp3 && test -s public/narration.mp3; then
+              echo "Narration generated successfully."
+              exit 0
+            fi
+            if [ "$attempt" -lt 3 ]; then
+              echo "TTS did not return audio; retrying in 10 seconds..."
+              sleep 10
+            fi
+          done
+          echo "ERROR: Edge TTS did not return audio after 3 attempts."
+          exit 1
       - name: Create original ambient soundtrack
         run: python scripts/create_soundtrack.py
       - name: Render vertical MP4
