@@ -39,33 +39,12 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Bootstrap and persist npm lockfile
-        shell: bash
-        env:
-          HEAD_REPOSITORY: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
-        run: |
-          if [[ ! -f package-lock.json ]]; then
-            echo "No npm lockfile found; generating one from package.json."
-            npm install --package-lock-only --ignore-scripts --no-audit --no-fund
-
-            target_branch="$GITHUB_REF_NAME"
-            if [[ -n "$GITHUB_HEAD_REF" ]]; then target_branch="$GITHUB_HEAD_REF"; fi
-            if [[ -n "$target_branch" ]] && { [[ "$GITHUB_EVENT_NAME" != "pull_request" ]] || [[ "$HEAD_REPOSITORY" == "$GITHUB_REPOSITORY" ]]; }; then
-              git config user.name "github-actions[bot]"
-              git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-              git add package-lock.json
-              if ! git diff --cached --quiet; then
-                git commit -m "chore: add npm lockfile"
-                git push origin "HEAD:$target_branch"
-              fi
-            else
-              echo "Lockfile generated for this run; repository write-back is unavailable for this pull request."
-            fi
-          fi
-
       - name: Install system media and fallback TTS tools
+        env:
+          DEBIAN_FRONTEND: noninteractive
+        timeout-minutes: 5
         run: |
-          sudo apt-get update
+          sudo apt-get update -o Acquire::Retries=2 -o Acquire::http::Timeout=25 -o Acquire::https::Timeout=25
           sudo apt-get install -y --no-install-recommends ffmpeg espeak-ng
 
       - name: Install npm dependencies
