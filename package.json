@@ -2,11 +2,15 @@
   "name": "remotion-studio",
   "version": "1.0.0",
   "private": true,
-  "description": "Automated video creation with Remotion",
+  "description": "Automated vertical video creation with Remotion",
+  "engines": { "node": ">=20 <23" },
   "scripts": {
     "dev": "remotion studio src/index.ts",
-    "build": "remotion render src/index.ts Main out/video.mp4",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "compositions": "remotion compositions src/index.ts",
+    "render": "remotion render src/index.ts Main out/video.mp4 --codec=h264 --concurrency=2",
+    "check": "npm run typecheck && npm run compositions",
+    "build": "npm run check && npm run render"
   },
   "dependencies": {
     "@remotion/cli": "^4.0.0",
