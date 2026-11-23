@@ -41,6 +41,7 @@ export const Main: React.FC = () => {
   return (
     <AbsoluteFill style={{ background: "radial-gradient(ellipse at 50% 38%, #263f68 0%, #101a31 42%, #050914 100%)", color: "white", fontFamily: "Arial, sans-serif", overflow: "hidden" }}>
       <Audio src={staticFile("narration.mp3")} volume={0.95} />
+      <Audio src={staticFile("soundtrack.wav")} volume={0.16} />
       <AbsoluteFill style={{ opacity: 0.35, backgroundImage: "linear-gradient(rgba(120,170,255,.12) 1px, transparent 1px), linear-gradient(90deg, rgba(120,170,255,.12) 1px, transparent 1px)", backgroundSize: "90px 90px", transform: `perspective(700px) rotateX(62deg) scale(1.8) translateY(240px)` }} />
       <div style={{ position: "absolute", width: 980, height: 980, borderRadius: "50%", left: "50%", top: "38%", transform: `translate(-50%,-50%) scale(${scale})`, background: "radial-gradient(circle at 35% 30%, #6c9ed0 0%, #315c91 20%, #142d53 48%, #071225 70%)", boxShadow: `0 0 100px ${chapter.color}55, inset -55px -35px 100px #020713`, opacity: 0.82 }} />
       <div style={{ position: "absolute", width: 1100, height: 1100, border: `2px solid ${chapter.color}55`, borderRadius: "50%", left: "50%", top: "38%", transform: `translate(-50%,-50%) rotate(${frame * 0.035}deg)`, opacity: pulse }} />
